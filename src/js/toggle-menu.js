@@ -1,4 +1,4 @@
-import Toggle from './toggle';
+import Toggle from './toggle';//引入Toggle类
 
 
 class ToggleMenu extends Toggle{
@@ -9,23 +9,30 @@ class ToggleMenu extends Toggle{
 	  ** @param {String|HTMLElement} config.target - Toggle target
 	  ** @param {Boolean} config.autoCollapse - Close menu when clicked on any part outside the `rootEl`
 	  ** @param {String} config.autoCollapseAnchor - Anchor's classname inside `targetEl`.
+
+	  * eg:
+	  	const menu = new ToggleMenu('.menu',{
+			autoCollapse:true,
+			autoCollapseAnchor: 'menu-link'
+		});
 	*/
 	 constructor(rootEl,config){
 	 	
 	 	///处理参数rootEl,使得其为一个HTMLElement
-	 	if(!rootEl){//继承的只是类这个对象本身，所以constructor里面的指令并没有继承，所以得再写一遍
+	 	//继承的只是类这个对象本身，所以constructor里面的指令并没有继承，所以得再写一遍
+	 	if(!rootEl){//如果rootEl不存在，则返回
 	 		return;
-	 	} else if (!(rootEl instanceof HTMLElement)){
+	 	} else if (!(rootEl instanceof HTMLElement)){//如果rootEl不是是HTMLElement，则就是一个querySelector字符串
 	 		rootEl = document.querySelector(rootEl);
-	 	}
+	 	}//eg的rootEl就是$('.menu')
 
 
 	 	
-	 	///创建、处理config.target,以作为其super的构造函数的参数
-	 	const toggleEl = rootEl.querySelector('[data-o-component="o-toggle"]');
+	 	///创建、处理config.target,以作为其super构造函数的参数
+	 	const toggleEl = rootEl.querySelector('[data-o-component="o-toggle"]');//选择rootEl下面第一个属性data-o-component值为"o-toggle"的元素
 	 	var targetEl = null;
 	 	config = config ? config :{};
-	 	if(!config.target){//如果config.target不存在，则将toggleEl的属性'data-o-toggle-target'的值赋给targetEl
+	 	if(!config.target){//如果config.target不存在，则将targetEl赋值为toggleEl的属性'data-o-toggle-target'的值
 	 		targetEl = toggleEl.hasAttribute('data-o-toggle-target') ? toggleEl.getAttribute('data-o-toggle-target'):null;
 	 	} else {
 	 		targetEl = config.target;
@@ -34,19 +41,17 @@ class ToggleMenu extends Toggle{
 	 	if(!targetEl){
 	 		return;
 	 	}
-
 	 	// At this point config.target could be either a String or an HTMLElement. Make sure it's an HTMLElement
 	 	if(!(targetEl instanceof HTMLElement)){
 	 		targetEl = rootEl.querySelector(targetEl);
 	 	}
 
-
 	 	super(toggleEl,{target:targetEl});//调用的是supper的constructor函数
 
-	 	//`this` is not allowed before super()
+
+	 	///`this` is not allowed before super()
 	 	this.rootEl=rootEl;
 	 	this.anchorClassName=config.autoCollapseAnchor;
-
 	 	this.anchorClick = this.anchorClick.bind(this);
 	 	this.bodyClick = this.bodyClick.bind(this);
 	 	this.handleEsc = this.handleEsc.bind(this);

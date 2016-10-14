@@ -1,189 +1,58 @@
-const promisify = require('promisify-node')
+const promisify = require('promisify-node');//包裹Node回调函数以返回Promises。
 const fs = promisify('fs');
 const path = require('path');
 const url = require('url');
-const isThere = require('is-there');
-const co = require('co');
-const mkdirp = require('mkdirp');
-const helper = require('./helper');
+const isThere = require('is-there');//Check if a file or directory exists in a given path.
+const co = require('co');//The ultimate generator based flow-control goodness for nodejs
+const mkdirp = require('mkdirp');//用于生成多层的路径，如/tmp/foo/bar/baz
+const helper = require('./helper');//自己手写的模块helper.js
 
 const del = require('del');
 const browserSync = require('browser-sync').create();
-const cssnext = require('postcss-cssnext');
+const cssnext = require('postcss-cssnext');//使你可以尽情使用最新的CSS语法。它会将CSS转换成兼容性更好的CSS，这样你就不需要顾虑浏览器的支持性了。
 
 const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
 
-const webpack = require('webpack');
+const webpack = require('webpack');//打包JavaScript文件，使得其可以在浏览器端使用
 const webpackConfig = require('./webpack.config.js');
 
-const rollup = require('rollup').rollup;
+const rollup = require('rollup').rollup;//新一代ES6的模块打包机
 const buble = require('rollup-plugin-buble');
 var cache;
 
 const demosDir = '../ft-interact/demos';
-const projectName = path.basename(__dirname);
+const projectName = path.basename(__dirname);//返回路径的最后一部分
 
 process.env.NODE_ENV = 'dev';
 
-// change NODE_ENV between tasks.
-gulp.task('prod', function(done) {
+
+gulp.task('prod',function(done){
   process.env.NODE_ENV = 'prod';
   done();
 });
 
-gulp.task('dev', function(done) {
+gulp.task('dev',function(done){
   process.env.NODE_ENV = 'dev';
   done();
 });
 
-gulp.task('html', () => {
-// determine whether include `/api/resize-iframe.js` listed in `ftc-components`.
-  var embedded = false;
+gulp.task('html',() => {
+  var embeded = false;//在base.html中，如果embeded值为true，则就要包含`/api/resize-iframe.js` listed in `ftc-components`.
 
-  return co(function *() {
+  return co(function *(){
     const destDir = '.tmp';
 
-    if (!isThere(destDir)) {
-      mkdirp(destDir, (err) => {
-        if (err) console.log(err);
-      });
-    }
-    if (process.env.NODE_ENV === 'prod') {
-      embedded = true;
-    }
-
-    const origami = yield helper.readJson('origami.json');
-
-    const demos = origami.demos;
-
-    const renderResults = yield Promise.all(demos.map(function(demo) {
-
-      const template = demo.template;
-      console.log(`Using template "${template}" for "${demo.name}"`);
-
-      const context = {
-        pageTitle: demo.name,
-        description: demo.description,
-        embedded: embedded
-      };
-
-      return helper.render(template, context, demo.name);
-    }));
-
-    yield Promise.all(renderResults.map(result => {
-      const dest = `.tmp/${result.name}.html`;
-      return fs.writeFile(dest, result.content, 'utf8');
-    }));
-  })
-  .then(function(){
-    browserSync.reload('*.html');
-  }, function(err) {
-    console.error(err.stack);
-  });
-});
-
-gulp.task('styles', function styles() {
-  const DEST = '.tmp/styles';
-
-  return gulp.src('demos/src/*.scss')
-    .pipe($.changed(DEST))
-    .pipe($.plumber())
-    .pipe($.sourcemaps.init({loadMaps:true}))
-    .pipe($.sass({
-      outputStyle: 'expanded',
-      precision: 10,
-      includePaths: ['bower_components']
-    }).on('error', $.sass.logError))
-    .pipe($.postcss([
-      cssnext({
-        features: {
-          colorRgba: false
+    if(!isThere(destDir)){
+      mkdirp(destDir,(err) => {
+        if(err){
+          console.log(err);
         }
       })
-    ]))
-    .pipe($.sourcemaps.write('./'))
-    .pipe(gulp.dest(DEST))
-    .pipe(browserSync.stream({once: true}));
-});
-
-gulp.task('eslint', () => {
-  return gulp.src('client/js/*.js')
-    .pipe($.eslint())
-    .pipe($.eslint.format())
-    .pipe($.eslint.failAfterError());
-});
-
-gulp.task('webpack', (done) => {
-  if (process.env.NODE_ENV === 'prod') {
-    delete webpackConfig.watch;
-  }
-
-  webpack(webpackConfig, function(err, stats) {
-    if (err) throw new $.util.PluginError('webpack', err);
-    $.util.log('[webpack]', stats.toString({
-      colors: $.util.colors.supportsColor,
-      chunks: false,
-      hash: false,
-      version: false
-    }));
-    browserSync.reload('demo.js');
-    done();
-  });
-});
-
-gulp.task('clean', function() {
-  return del(['.tmp/**']);
-});
-
-gulp.task('serve', gulp.parallel('html', 'styles', 'webpack', () => {
-  browserSync.init({
-    server: {
-      baseDir: ['.tmp'],
-      index: 'share.html',
-      directory: true,
-      routes: {
-        '/bower_components': 'bower_components'
-      }
     }
-  });
-
-  gulp.watch(['demos/src/*.{html,json}', 'partials/*.html'], gulp.parallel('html'));
-
-  gulp.watch('demos/src/*.scss',gulp.parallel('styles'));
-}));
-
-gulp.task('build', gulp.parallel('html', 'styles', 'webpack'));
-
-gulp.task('copy', () => {
-  const DEST = path.resolve(__dirname, demosDir, projectName);
-  console.log(`Deploying to ${DEST}`);
-  return gulp.src('.tmp/**/*')
-    .pipe(gulp.dest(DEST));
-});
-
-gulp.task('demo', gulp.series('prod', 'clean', 'build', 'copy', 'dev'));
+  })
+})
 
 
-// dist js to be directly used in the browser.
-gulp.task('rollup', () => {
-  return rollup({
-    entry: './src/js/toggle.js',
-    plugins: [buble()],
-    cache: cache,
-    // external: ['dom-delegate']
-  }).then(function(bundle) {
-    cache = bundle;
 
-    return bundle.write({
-      format: 'iife',
-      moduleName: 'Toggle',
-      moduleId: 'ftc-toggle',
-      // globals: {
-      //   'dom-delegate': 'domDelegate.Delegate'
-      // },
-      dest: 'dist/ftc-toggle.js',
-      sourceMap: true,
-    });
-  });
-});
+

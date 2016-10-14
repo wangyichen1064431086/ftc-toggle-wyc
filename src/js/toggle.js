@@ -29,7 +29,7 @@ class Toggle{
 				if(attr.name.indexOf('data-o-toggle') === 0){//如果attr属性的属性名是以'data-o-toggle'开始
 					const key=attr.name.replace('data-o-toggle-','');//则去掉该属性明的'data-o-toggle-'部分，赋值给key值。eg:该属性名为'data-o-toggle-target'，则key为'target'
 					try{
-						config[key]=JSON.parse(attr.value.replace(/\'/g,'"'));//设置config的属性key的值为：属性attr的属性值,且将其的单引号'替换为双引号"---这句话好啰嗦，待研究
+						config[key]=JSON.parse(attr.value.replace(/\'/g,'"'));//设置config的属性key的值为：属性attr的属性值,且将其的单引号'替换为双引号"---这句话好啰嗦，疑问：有必要这样写吗？
 					}catch(e){
 						config[key]=attr.value;
 					}
@@ -91,9 +91,9 @@ class Toggle{
 		const toggleEls=el.querySelectorAll('[data-o-component="o-toggle"]');//选择其下所有属性data-o-component为"o-toggle"的元素
 		const toggles=[];
 
-		for(let toggleEl of toggleEls){//for-of是ES6的循环
-			if(!toggleEl.hasAttribute('data-o-toggle--js')){
-				toggles.push(new Toggle(toggleEl,config));
+		for(let toggleEl of toggleEls){//for-of是ES6的循环。这里是将每一个toggleEl元素都创建为Toggle实例
+			if(!toggleEl.hasAttribute('data-o-toggle--js')){//如果toggleEl不含属性'data-o-toggle--js'
+				toggles.push(new Toggle(toggleEl,config));//创建toggle实例
 
 			}
 		}
