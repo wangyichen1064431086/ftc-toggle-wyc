@@ -66,7 +66,7 @@ class Toggle{
 	    * 原生`toggle`方法 adds the class name and returns true if it not exists; returns false if it exists then removes it.
 	    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/DOMTokenList}
 	    */
-		e && e.preventDefault();
+		e && e.preventDefault();//如果传递了参数e,才执行e.preventDefault()
 		this.state = this.targetEl.classList.toggle('o-toggle--active');//没有这个样式就添加，有这个样式就移除
 		this.toggleEl.setAttribute('aria-expanded',this.state);
 		this.targetEl.setAttribute('aria-hidden',!this.state);
@@ -88,8 +88,8 @@ class Toggle{
 			el=document.querySelector(el);
 		}
 
-		const toggleEls=el.querySelectorAll('[data-o-component="o-toggle"]');//选择其下所有属性data-o-component为"o-toggle"的元素
-		const toggles=[];
+		const toggleEls = el.querySelectorAll('[data-o-component="o-toggle"]');//选择其下所有属性data-o-component为"o-toggle"的元素
+		const toggles = [];
 
 		for(let toggleEl of toggleEls){//for-of是ES6的循环。这里是将每一个toggleEl元素都创建为Toggle实例
 			if(!toggleEl.hasAttribute('data-o-toggle--js')){//如果toggleEl不含属性'data-o-toggle--js'

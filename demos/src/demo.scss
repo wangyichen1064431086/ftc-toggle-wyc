@@ -2,7 +2,7 @@
 
 body {
 	@include oColorsFor(page);/*包含一个混合器：oColorsFor(page)*/
-	min-height: 100vh;
+	min-height: 100vh;//vh:相对于视口的百分比
 }
 
 ul {

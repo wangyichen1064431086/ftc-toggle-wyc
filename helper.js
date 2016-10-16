@@ -1,4 +1,4 @@
-const nunjucks = require('fs');
+const fs = require('fs');
 const path = require('path');
 const nunjucks = require('nunjucks');
 
@@ -25,7 +25,7 @@ var env = new nunjucks.Environment(
 		{
 			noCache: true//不使用缓存，每次都重新编译
 		}
-	)，
+	),
 	{
 		autoescape:false//autoescape属性用于控制输出是否被转义
 	}

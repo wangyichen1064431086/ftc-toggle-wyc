@@ -7,13 +7,13 @@ class ToggleMenu extends Toggle{
 	  * @param {String|HTMLElement} rootEl - The menu container
 	  * @param {Object} confit
 	  ** @param {String|HTMLElement} config.target - Toggle target
-	  ** @param {Boolean} config.autoCollapse - Close menu when clicked on any part outside the `rootEl`
-	  ** @param {String} config.autoCollapseAnchor - Anchor's classname inside `targetEl`.
+	  ** @param {Boolean} config.bodyTogglable - Close menu when clicked on any part outside the `rootEl`
+	  ** @param {String} config.hashNavClass - Anchor's classname inside `targetEl`.Used mainly for fragement identifier. Say, when a link pointing to a fragement idenfitier is clicked, you want the menu automatically closed rather than staying open. 
 
 	  * eg:
 	  	const menu = new ToggleMenu('.menu',{
-			autoCollapse:true,
-			autoCollapseAnchor: 'menu-link'
+			bodyTogglable:true,
+			hashNavClass: 'menu-link'
 		});
 	*/
 	 constructor(rootEl,config){
@@ -28,7 +28,7 @@ class ToggleMenu extends Toggle{
 
 
 	 	
-	 	///创建、处理config.target,以作为其super构造函数的参数
+	 	///创建、处理targetEl,以作为其super构造函数的参数
 	 	const toggleEl = rootEl.querySelector('[data-o-component="o-toggle"]');//选择rootEl下面第一个属性data-o-component值为"o-toggle"的元素
 	 	var targetEl = null;
 	 	config = config ? config :{};
@@ -49,34 +49,37 @@ class ToggleMenu extends Toggle{
 	 	super(toggleEl,{target:targetEl});//调用的是supper的constructor函数
 
 
-	 	///`this` is not allowed before super()
+	 	///`this` is not allowed before super()(原文注释)
 	 	this.rootEl=rootEl;
-	 	this.anchorClassName=config.autoCollapseAnchor;
-	 	this.anchorClick = this.anchorClick.bind(this);
-	 	this.bodyClick = this.bodyClick.bind(this);
+	 	this.anchorClassName=config.bodyTogglable;
+
+	   ///将this.方法绑定到这个类的实例本身上
+	 	this.clickOnHash = this.clickOnHash.bind(this);
+	 	this.clickOnbody = this.clickOnBody.bind(this);
 	 	this.handleEsc = this.handleEsc.bind(this);
 
-	 	if(config.autoCollapseAnchor){
-	 		targetEl.addEventListener('click',this.anthorClick);
+	 	if(config.hashNavClass){
+	 		targetEl.addEventListener('click',this.clickOnHash);
 	 	}
 
-	 	if(config.autoCollapse){
-	 		document.body.addEventListener('click',this.bodyClick);
+	 	if(config.bodyTogglable){
+	 		document.body.addEventListener('click',this.clickOnBody);
 	 	}
 
 	 	document.body.addEventListener('keydown',this.handleEsc);
 	 }
 
-	 anchorClick(e){
-	 	if(this.state && e.target.classList.contains(this.anchorClassName)){//如果this.anchorClassName是e.target.classList的后代节点
-	 		this.toggle();
+	 clickOnHash(e){
+	 	if(this.state && e.target.classList.contains(this.anchorClassName)){//如果this.state为true且e.target.classList包含this.anchorClassName，即如果点击的target元素不具有menu-link的class且菜单是展开状态的
+	 		this.toggle();//这个是继承自Toggle类的方法。
+	 		// do not pass `e` to `toggle()`. You centainly do not want a link prevented.(参见toggle.js中Toggle.toggle()的写法)
 	 	}
 	 }
 	 ///说明：node.contains( otherNode ) returns a Boolean value indicating whether a node is a descendant of a given node or not.
 
 
-	 bodyClick(e){
-	 	if (this.state && !this.rootEl.contains(e.target)){//如果e.target不是this.rootEl的后代节点
+	 clickOnBody(e){
+	 	if (this.state && !this.rootEl.contains(e.target)){//如果this.state为true且e.target不是this.rootEl的后代节点,即如果菜单是展开的且点击的target不是'.menu'元素下的
 	 		this.toggle();
 	 	}
 	 }
